@@ -4,17 +4,17 @@ use App\Http\Controllers\CRUD1\ProductController;
 use App\Http\Controllers\CRUD2\BarangsController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
-// CRUD 1
-Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/create', [ProductController::class, 'create']);
-Route::post('/products/store', [ProductController::class, 'store']);
-Route::get('/products/edit/{id}', [ProductController::class, 'edit']);
-Route::post('/products/update/{id}', [ProductController::class, 'update']);
-Route::get('/products/delete/{id}', [ProductController::class, 'destroy']);
+// // CRUD 1
+// Route::get('/products', [ProductController::class, 'index']);
+// Route::get('/products/create', [ProductController::class, 'create']);
+// Route::post('/products/store', [ProductController::class, 'store']);
+// Route::get('/products/edit/{id}', [ProductController::class, 'edit']);
+// Route::post('/products/update/{id}', [ProductController::class, 'update']);
+// Route::get('/products/delete/{id}', [ProductController::class, 'destroy']);
 
 // CRUD 2
 Route::controller(BarangsController::class)->group(function () {
