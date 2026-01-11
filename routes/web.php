@@ -3,6 +3,7 @@
 use App\Http\Controllers\CRUD1\ProductController;
 use App\Http\Controllers\CRUD2\BarangsController;
 use App\Http\Controllers\CRUD3\StudentController;
+use App\Http\Controllers\EmployeeController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -27,5 +28,9 @@ Route::controller(BarangsController::class)->group(function () {
     Route::delete('/delete/{id}', 'destroy')->name('barangs.destroy');
 });
 
+// CRUD 3
 // Route resource ini otomatis membuat route untuk index, create, store, edit, update, destroy
 Route::resource('students', StudentController::class);
+
+// CRUD 4
+Route::resource('employees', EmployeeController::class);
