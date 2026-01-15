@@ -4,6 +4,7 @@ use App\Http\Controllers\CRUD1\ProductController;
 use App\Http\Controllers\CRUD2\BarangsController;
 use App\Http\Controllers\CRUD3\StudentController;
 use App\Http\Controllers\EmployeeController;
+use App\Models\Inventaris;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -177,3 +178,54 @@ Route::delete('/siswa/{id}', function ($id) {
     DB::table('murids')->where('id', $id)->delete();
     return redirect()->route('siswa.index')->with('success', 'Siswa dihapus');
 })->name('siswa.destroy');
+
+// 1. INDEX (Tampilkan Semua)
+Route::get('/gudang', function () {
+    // Pakai Model, lebih elegan
+    $barang = Inventaris::latest()->get();
+    return view('gudang.index', compact('barang'));
+})->name('gudang.index');
+
+// 2. CREATE (Form Tambah)
+Route::get('/gudang/tambah', function () {
+    return view('gudang.create');
+})->name('gudang.create');
+
+// 3. STORE (Simpan Data)
+Route::post('/gudang', function (Request $request) {
+    $request->validate([
+        'nama_barang' => 'required',
+        'stok' => 'required|numeric',
+        'kondisi' => 'required',
+        'lokasi_rak' => 'required'
+    ]);
+
+    // Simpan pakai Model (otomatis created_at terisi)
+    Inventaris::create($request->all());
+
+    return redirect()->route('gudang.index')->with('sukses', 'Barang masuk gudang!');
+})->name('gudang.store');
+
+// 4. EDIT (Form Edit)
+Route::get('/gudang/{id}/edit', function ($id) {
+    // Cari data berdasarkan ID, kalau ga ada otomatis 404
+    $item = Inventaris::findOrFail($id);
+    return view('gudang.edit', compact('item'));
+})->name('gudang.edit');
+
+// 5. UPDATE (Simpan Perubahan)
+Route::put('/gudang/{id}', function (Request $request, $id) {
+    $item = Inventaris::findOrFail($id);
+
+    $item->update($request->all());
+
+    return redirect()->route('gudang.index')->with('sukses', 'Data barang diperbarui!');
+})->name('gudang.update');
+
+// 6. DESTROY (Hapus)
+Route::delete('/gudang/{id}', function ($id) {
+    $item = Inventaris::findOrFail($id);
+    $item->delete();
+
+    return redirect()->route('gudang.index')->with('sukses', 'Barang dihapus dari stok.');
+})->name('gudang.destroy');
