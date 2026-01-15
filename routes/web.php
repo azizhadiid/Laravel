@@ -99,3 +99,81 @@ Route::delete('/guestbook/{id}', function ($id) {
 
     return redirect()->route('guestbook.index')->with('success', 'Pesan dihapus!');
 })->name('guestbook.destroy');
+
+// 1. READ (Tampilkan Data Siswa + Nama Kelasnya)
+Route::get('/siswa', function () {
+    // MANUAL JOIN:
+    // "Ambil data students, gabungkan dengan classrooms,
+    // di mana students.classroom_id SAMA DENGAN classrooms.id"
+    $students = DB::table('murids')
+        ->join('classrooms', 'murids.classroom_id', '=', 'classrooms.id')
+        ->select(
+            'murids.*',
+            'classrooms.name as class_name', // Kita ambil nama kelas sebagai alias
+            'classrooms.teacher'
+        )
+        ->orderBy('murids.id', 'desc')
+        ->get();
+
+    return view('siswa.index', ['students' => $students]);
+})->name('siswa.index');
+
+// 2. CREATE (Form Tambah - Butuh Data Kelas untuk Dropdown)
+Route::get('/siswa/create', function () {
+    $classrooms = DB::table('classrooms')->get(); // Ambil semua kelas
+    return view('siswa.create', ['classrooms' => $classrooms]);
+})->name('siswa.create');
+
+// 3. STORE (Simpan Data)
+Route::post('/siswa', function (Request $request) {
+    $request->validate([
+        'classroom_id' => 'required', // Pastikan ID kelas ada
+        'nis' => 'required|numeric|unique:murids,nis',
+        'name' => 'required',
+    ]);
+
+    DB::table('murids')->insert([
+        'classroom_id' => $request->classroom_id,
+        'nis' => $request->nis,
+        'name' => $request->name,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return redirect()->route('siswa.index')->with('success', 'Siswa berhasil didaftarkan');
+})->name('siswa.store');
+
+// 4. EDIT (Ambil Data Siswa & Daftar Kelas)
+Route::get('/siswa/{id}/edit', function ($id) {
+    $student = DB::table('murids')->where('id', $id)->first();
+    $classrooms = DB::table('classrooms')->get();
+
+    if (!$student) return abort(404);
+
+    return view('siswa.edit', ['student' => $student, 'classrooms' => $classrooms]);
+})->name('siswa.edit');
+
+// 5. UPDATE (Simpan Perubahan)
+Route::put('/siswa/{id}', function (Request $request, $id) {
+    // Validasi unique nis kecuali punya diri sendiri
+    $request->validate([
+        'classroom_id' => 'required',
+        'nis' => 'required|numeric',
+        'name' => 'required',
+    ]);
+
+    DB::table('murids')->where('id', $id)->update([
+        'classroom_id' => $request->classroom_id,
+        'nis' => $request->nis,
+        'name' => $request->name,
+        'updated_at' => now(),
+    ]);
+
+    return redirect()->route('siswa.index')->with('success', 'Data siswa diperbarui');
+})->name('siswa.update');
+
+// 6. DELETE (Hapus)
+Route::delete('/siswa/{id}', function ($id) {
+    DB::table('murids')->where('id', $id)->delete();
+    return redirect()->route('siswa.index')->with('success', 'Siswa dihapus');
+})->name('siswa.destroy');
