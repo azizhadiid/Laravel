@@ -4,6 +4,8 @@ use App\Http\Controllers\CRUD1\ProductController;
 use App\Http\Controllers\CRUD2\BarangsController;
 use App\Http\Controllers\CRUD3\StudentController;
 use App\Http\Controllers\EmployeeController;
+use App\Models\Book;
+use App\Models\Category;
 use App\Models\Inventaris;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -229,3 +231,64 @@ Route::delete('/gudang/{id}', function ($id) {
 
     return redirect()->route('gudang.index')->with('sukses', 'Barang dihapus dari stok.');
 })->name('gudang.destroy');
+
+// 1. INDEX (Tampilkan Buku + Nama Kategorinya)
+Route::get('/books', function () {
+    // Eager Loading: Ambil buku BESERTA data kategorinya
+    $books = Book::with('category')->latest()->get();
+
+    return view('books.index', compact('books'));
+})->name('books.index');
+
+// 2. CREATE (Form Tambah - Butuh data kategori buat dropdown)
+Route::get('/books/create', function () {
+    $categories = Category::all();
+    return view('books.create', compact('categories'));
+})->name('books.create');
+
+// 3. STORE (Simpan)
+Route::post('/books', function (Request $request) {
+    $request->validate([
+        'category_id' => 'required|exists:categories,id', // Validasi FK
+        'title' => 'required',
+        'author' => 'required',
+        'year' => 'required|numeric',
+    ]);
+
+    // Simpan pakai Model (Laravel otomatis mapping field)
+    Book::create($request->all());
+
+    return redirect()->route('books.index')->with('success', 'Buku baru ditambahkan!');
+})->name('books.store');
+
+// 4. EDIT (Form Edit - Load data buku & kategori)
+Route::get('/books/{id}/edit', function ($id) {
+    $book = Book::findOrFail($id);
+    $categories = Category::all();
+
+    return view('books.edit', compact('book', 'categories'));
+})->name('books.edit');
+
+// 5. UPDATE (Update Data)
+Route::put('/books/{id}', function (Request $request, $id) {
+    $book = Book::findOrFail($id);
+
+    $request->validate([
+        'category_id' => 'required',
+        'title' => 'required',
+        'author' => 'required',
+        'year' => 'required|numeric',
+    ]);
+
+    $book->update($request->all());
+
+    return redirect()->route('books.index')->with('success', 'Data buku diperbarui!');
+})->name('books.update');
+
+// 6. DESTROY (Hapus)
+Route::delete('/books/{id}', function ($id) {
+    $book = Book::findOrFail($id);
+    $book->delete();
+
+    return redirect()->route('books.index')->with('success', 'Buku dihapus dari rak.');
+})->name('books.destroy');
